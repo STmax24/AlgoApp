@@ -1,0 +1,22 @@
+KainzAcademy/
+│
+├── src/
+│   ├── main.jsx                # Einstiegspunkt der App
+│   ├── App.jsx                 # Hauptkomponente mit Navigation & Views
+│   │
+│   ├── components/
+│   │   ├── Structorizer.jsx    # Editor für Struktogramme
+│   │   ├── TraceSimulator.jsx  # Simulation von Ablaufspuren
+│   │   ├── TaskViewer.jsx      # Anzeige & Simulation einzelner Aufgaben
+│   │   └── AIChat.jsx          # Chat mit KI (OpenAI API)
+│   │
+│   ├── data/
+│   │   └── database.js         # Theorie- und Aufgaben-Datenbank (Theorie + Tasks)
+│   │
+│   ├── index.css               # TailwindCSS-Styles
+│   └── assets/                 # (Optional) Bilder, Icons, Logos
+│
+├── package.json
+├── tailwind.config.js
+├── postcss.config.js
+└── vite.config.js              # (oder CRA config)
