@@ -1,0 +1,508 @@
+// --- Block A1 ---
+// src/main.jsx
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import './index.css';
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+);
+// --- Block A2 ---
+// src/App.jsx
+import React, { useState } from "react";
+import {
+  Menu,
+  Code,
+  Brain,
+  MessageSquare,
+  GraduationCap,
+  Monitor,
+  Phone,
+  BookOpen,
+  ChevronRight,
+} from "lucide-react";
+
+import Structorizer from "./components/Structorizer";
+import AIChat from "./components/AIChat";
+import TraceSimulator from "./components/TraceSimulator";
+import { DATABASE } from "./data/database";
+
+const App = () => {
+  const [mode, setMode] = useState("startup");
+  const [view, setView] = useState("dashboard");
+  const [task, setTask] = useState(null);
+
+  const THEORY_DATA = DATABASE.theory;
+  const TASKS_DATA = DATABASE.tasks;
+
+  if (mode === "startup")
+    return (
+      <div className="fixed inset-0 bg-slate-900 flex flex-col items-center justify-center text-white p-6">
+        <div className="p-6 bg-blue-600 rounded-full mb-8 shadow-xl">
+          <GraduationCap size={64} />
+        </div>
+        <h1 className="text-4xl font-bold mb-2 text-center">
+          Kainz Academy
+        </h1>
+        <p className="text-blue-300 uppercase tracking-widest text-xs mb-12">
+          Ultimate Exam Edition
+        </p>
+        <div className="grid md:grid-cols-2 gap-6 w-full max-w-xl">
+          <button
+            onClick={() => setMode("mobile")}
+            className="bg-slate-800 p-6 rounded-2xl border border-slate-700 hover:border-blue-500 hover:bg-slate-700 transition-all flex flex-col items-center gap-3 shadow-xl"
+          >
+            <Phone size={32} className="text-blue-400" />
+            <span className="font-bold text-lg">Mobile</span>
+          </button>
+          <button
+            onClick={() => setMode("desktop")}
+            className="bg-slate-800 p-6 rounded-2xl border border-slate-700 hover:border-emerald-500 hover:bg-slate-700 transition-all flex flex-col items-center gap-3 shadow-xl"
+          >
+            <Monitor size={32} className="text-emerald-400" />
+            <span className="font-bold text-lg">Desktop</span>
+          </button>
+        </div>
+      </div>
+    );
+
+  const isMobile = mode === "mobile";
+
+  return (
+    <div className={`flex h-screen bg-slate-100 ${isMobile ? "text-base" : "text-sm"}`}>
+      {!isMobile && (
+        <aside className="w-64 bg-slate-900 text-white flex flex-col shadow-2xl">
+          <div className="p-6 font-bold text-xl flex items-center gap-2 border-b border-slate-800">
+            <GraduationCap className="text-blue-500" /> Kainz.App
+          </div>
+          <nav className="flex-1 p-4 space-y-2">
+            {[
+              { label: "Übersicht", icon: Menu, view: "dashboard" },
+              { label: "Aufgaben", icon: Code, view: "tasks" },
+              { label: "Structorizer", icon: Brain, view: "editor" },
+              { label: "AI Tutor", icon: MessageSquare, view: "chat" },
+            ].map((btn) => (
+              <button
+                key={btn.view}
+                onClick={() => {
+                  setView(btn.view);
+                  setTask(null);
+                }}
+                className={`w-full text-left p-3 rounded-lg flex gap-3 ${
+                  view === btn.view
+                    ? "bg-blue-600 shadow"
+                    : "hover:bg-slate-800 text-slate-300 hover:text-white"
+                }`}
+              >
+                <btn.icon size={18} /> {btn.label}
+              </button>
+            ))}
+          </nav>
+        </aside>
+      )}
+
+      <main className="flex-1 flex flex-col h-full relative overflow-hidden">
+        <header className="h-16 bg-white border-b flex items-center justify-between px-6 shadow-sm z-10">
+          <div className="flex items-center gap-4">
+            {isMobile && (
+              <button onClick={() => setMode("startup")}>
+                <Menu />
+              </button>
+            )}
+            <h2 className="font-bold text-lg capitalize text-slate-700">
+              {task ? "Aufgabe" : view}
+            </h2>
+          </div>
+        </header>
+
+        <div className="flex-1 overflow-hidden relative">
+          {/* Dashboard */}
+          {view === "dashboard" && !task && (
+            <div className="p-8 overflow-y-auto h-full space-y-8">
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-8 rounded-2xl shadow-lg">
+                <h2 className="text-3xl font-bold mb-4">
+                  Willkommen in der Kainz Academy
+                </h2>
+                <p className="opacity-90 max-w-xl text-lg">
+                  Lerne alle prüfungsrelevanten Algorithmen mit Theorie, Simulation und AI-Hilfe.
+                </p>
+              </div>
+
+              <div className="bg-white p-6 rounded-xl border shadow-sm">
+                <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                  <BookOpen className="text-blue-500" /> Theorie Crashkurs
+                </h3>
+                <div className="space-y-3">
+                  {THEORY_DATA.map((t, i) => (
+                    <details key={i} className="group">
+                      <summary className="cursor-pointer font-bold text-slate-700 hover:text-blue-600 list-none flex justify-between">
+                        {t.title}
+                        <span className="text-slate-400 group-open:rotate-180 transition-transform">
+                          ▼
+                        </span>
+                      </summary>
+                      <div className="mt-2 text-sm text-slate-600 pl-4 border-l-2 border-slate-200 whitespace-pre-line">
+                        {t.content}
+                      </div>
+                    </details>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Aufgabenübersicht */}
+          {view === "tasks" && !task && (
+            <div className="p-6 overflow-y-auto h-full space-y-8">
+              <div className="flex items-baseline gap-3 mb-4 border-b pb-2">
+                <h3 className="font-bold text-2xl text-slate-800">Alle Aufgaben</h3>
+              </div>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {TASKS_DATA.map((t) => (
+                  <div
+                    key={t.id}
+                    onClick={() => setTask(t)}
+                    className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-blue-500 cursor-pointer transition-all group hover:-translate-y-1"
+                  >
+                    <div className="flex justify-between items-start mb-3">
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                          t.diff === 1
+                            ? "bg-green-100 text-green-700"
+                            : t.diff === 2
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {t.diff}
+                      </div>
+                      <ChevronRight className="text-slate-300 group-hover:text-blue-500" />
+                    </div>
+                    <h4 className="font-bold text-lg mb-1">{t.title}</h4>
+                    <p className="text-xs text-slate-500 line-clamp-2">{t.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Structorizer */}
+          {view === "editor" && <Structorizer />}
+
+          {/* AI Chat */}
+          {view === "chat" && <AIChat />}
+
+          {/* Trace Simulator */}
+          {view === "trace" && <TraceSimulator />}
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default App;
+// --- Block A3 ---
+// src/data/database.js
+import { BookOpen, CheckCircle, List, Play, SortAsc, Calculator, Brain, Truck, Coins } from 'lucide-react';
+
+// --- THEORIE DATEN ---
+export const THEORY_DATA = [
+  {
+    id: "th_1",
+    title: "1. Grundlagen & Algorithmus-Begriff",
+    icon: BookOpen,
+    content: `
+**Was ist ein Algorithmus?**
+Eine eindeutige Handlungsvorschrift zur Lösung eines Problems. Er besteht aus endlich vielen, wohldefinierten Einzelschritten.
+
+**Die 4 Schritte (Kainz-Schema):**
+1. **Problem verstehen:** Was ist gegeben (Input)? Was ist gesucht (Output)? Welche Rahmenbedingungen gibt es?
+2. **Theorie finden:** Wie löse ich das logisch/mathematisch? (Formel suchen, Ablauf im Kopf durchspielen).
+3. **Struktogramm:** Grafische Darstellung nach DIN 66261 (Nassi-Shneiderman). Das ist der "Bauplan".
+4. **Codieren:** Übersetzung in eine Sprache (z.B. Java).
+
+**Zettelregeln (Das Modell für Anfänger):**
+* **Variablen** sind Zettel, auf denen *genau ein* Wert steht.
+* **Zuweisung (<-)**: Alten Wert radieren, neuen schreiben.
+* **Vergleich:** Du hast nur zwei Hände. Du kannst immer nur zwei Zettel gleichzeitig vergleichen.
+    `
+  },
+  {
+    id: "th_2",
+    title: "2. Eigenschaften (Prüfungsstoff!)",
+    icon: CheckCircle,
+    content: `
+**1. Determiniertheit (Das Ergebnis):**
+Bei gleicher Eingabe kommt STETS das gleiche Ergebnis raus.
+* *Beispiel:* 2 + 2 = 4 (Determiniert).
+* *Gegenbeispiel:* Würfeln (Ergebnis zufällig) -> NICHT determiniert.
+
+**2. Determinismus (Der Weg):**
+Der Weg der Abarbeitung ist immer gleich. Keine Zufallsentscheidung im Pfad.
+* *Gegenbeispiel:* "Wenn Zufall > 5 gehe links". Der Weg variiert -> NICHT deterministisch.
+
+**3. Terminierung:**
+Der Algorithmus kommt nach endlich vielen Schritten zum Ende (keine Endlosschleife).
+    `
+  },
+  {
+    id: "th_3",
+    title: "3. Arrays (Listen & Matrizen)",
+    icon: List,
+    content: `
+**KAINZ REGEL #1:** Arrays beginnen IMMER bei Index 0.
+* Erstes Element: array[0]
+* Letztes Element: array[länge - 1]
+* **Fehler:** Zugriff auf array[länge] -> Absturz!
+
+**2D Arrays (Matrizen):**
+Zugriff: matrix[zeile][spalte].
+Durchlauf: Zwei verschachtelte Schleifen (Außen: Zeile, Innen: Spalte).
+    `
+  },
+  {
+    id: "th_4",
+    title: "4. Schleifen (Loops)",
+    icon: Play,
+    content: `
+**1. Zählschleife (FOR):**
+Anzahl der Wiederholungen ist VORHER bekannt.
+* *Bsp:* "Laufe 10 mal", "Für jedes Element im Array".
+
+**2. Kopfgesteuert (WHILE):**
+Anzahl unbekannt. Bedingung VORHER prüfen. Kann 0 mal laufen.
+* *Bsp:* "Solange Guthaben > 0".
+
+**3. Fußgesteuert (DO-WHILE):**
+Bedingung NACHHER prüfen. Läuft MINDESTENS 1 mal.
+* *Bsp:* "Passwort eingeben, bis es stimmt".
+    `
+  },
+  {
+    id: "th_5",
+    title: "5. Sortieren",
+    icon: SortAsc,
+    content: `
+**Bubble Sort (Tauschen):**
+Vergleicht Nachbarn. Größtes Element "blubbert" nach rechts. Viele Täusche.
+
+**Insertion Sort (Einfügen):**
+Wie Kartenspielen. Nimm nächste Karte, suche Platz im sortierten Teil, schiebe Rest zur Seite, füge ein.
+    `
+  }
+];
+
+// --- AUFGABEN DATEN ---
+export const TASKS_DATA = [
+  {
+    id: "m4_1",
+    module: "4. Prüfungen",
+    title: "Konzertsaal (ZT 2025)",
+    diff: 3,
+    text: "Rechteckiger Saal (r x s). 50% zufällig belegen ('X'). Keine Doppelbelegung! Ausgabe Plan + Statistik pro Reihe.",
+    solution_steps: [
+      "Eingabe r, s. Max = (r*s)/2",
+      "WHILE belegt < Max",
+      "  z = Zufall, s = Zufall",
+      "  IF saal[z][s] == 0 (Frei)",
+      "    saal[z][s] = 'X', belegt++",
+      "Statistik: Zeilenweise durchlaufen und 'X' zählen"
+    ],
+    trace: [{l:2, v:"Belegt: 0"}, {l:4, v:"Platz belegt? Skip"}, {l:4, v:"Frei? Setzen"}, {l:6, v:"Statistik: Reihe 1 = 2"}]
+  },
+  {
+    id: "m4_2",
+    module: "4. Prüfungen",
+    title: "Flugzeug Check-in (2024)",
+    diff: 3,
+    text: "30 Reihen, 6 Sitze. Jeder 5. Passagier ist VIP und überschreibt Plätze. Andere müssen freien Platz suchen.",
+    solution_steps: [
+      "FOR p = 1 bis N",
+      "  Wähle Platz z, s",
+      "  IF p % 5 == 0 (VIP)",
+      "    Setze Platz (Überschreiben erlaubt)",
+      "  ELSE",
+      "    IF Platz frei -> Setzen",
+      "    ELSE -> Warten"
+    ],
+    trace: [{l:1, v:"p=1 (Normal)"}, {l:6, v:"Frei -> OK"}, {l:1, v:"p=5 (VIP)"}, {l:4, v:"Besetzt -> Verdrängt!"}]
+  },
+  {
+    id: "m4_3",
+    module: "4. Prüfungen",
+    title: "Baumschule (2023)",
+    diff: 3,
+    text: "5000m². Äpfel(10m²), Birnen(7m²), Kirschen(8m²). Mind. 10 je Sorte. Kosten minimieren (A:5€, B:7€, K:8€).",
+    solution_steps: [
+      "FOR a = 10 bis 500",
+      "  FOR b = 10 bis 700",
+      "    FOR k = 10 bis 600",
+      "      Fläche = a*10 + b*7 + k*8",
+      "      IF Fläche <= 5000 AND ErtragBed == OK",
+      "        Kosten berechnen. Wenn kleiner als Min -> Merken."
+    ],
+    trace: [{l:4, v:"Fläche: 4900 (OK)"}, {l:5, v:"Ertrag passt"}, {l:6, v:"Kosten 2500 -> Neues Min"}]
+  },
+  {
+    id: "m4_4",
+    module: "4. Prüfungen",
+    title: "Spediteur (2020)",
+    diff: 2,
+    text: "X Tonnen. LKW 40t, 25t, 10t. Minimiere Leerstand.",
+    solution_steps: ["Eingabe X", "Loops über alle LKW Typen", "Kapazität berechnen", "Wenn Kap >= X -> Leerstand berechnen", "Wenn Leerstand < Min -> Merken"],
+    trace: [{l:4, v:"Kap 40 >= 33"}, {l:5, v:"Leerstand 7"}]
+  }
+];
+
+// --- EXPORTIERTE DATEN ---
+export const DATABASE = {
+  theory: THEORY_DATA,
+  tasks: TASKS_DATA
+};
+// --- Block A4 ---
+// src/components/TaskViewer.jsx
+import React, { useState } from "react";
+import { ArrowLeft, Play, RotateCcw, ChevronDown } from "lucide-react";
+
+const TaskViewer = ({ task, onBack }) => {
+  const [step, setStep] = useState(0);
+  const [showSolution, setShowSolution] = useState(false);
+
+  const nextStep = () => {
+    if (step < task.trace.length) setStep(step + 1);
+    else setStep(0);
+  };
+
+  return (
+    <div className="flex flex-col h-full bg-slate-50">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 bg-white border-b shadow-sm">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-semibold"
+        >
+          <ArrowLeft size={18} /> Zurück
+        </button>
+        <h2 className="font-bold text-lg text-slate-700">{task.title}</h2>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={nextStep}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded text-white text-sm font-bold ${
+              step >= task.trace.length
+                ? "bg-blue-500"
+                : "bg-green-600 hover:bg-green-700"
+            }`}
+          >
+            {step >= task.trace.length ? <RotateCcw size={14} /> : <Play size={14} />}
+            {step >= task.trace.length ? "Reset" : "Step"}
+          </button>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 p-6 space-y-6 overflow-auto">
+        {/* Aufgabe */}
+        <div className="bg-white p-5 rounded-xl border shadow-sm">
+          <h3 className="font-bold text-lg mb-2 text-slate-700">Aufgabenstellung</h3>
+          <p className="text-slate-600 whitespace-pre-line">{task.text}</p>
+          <p className="mt-3 text-sm text-slate-500 italic">
+            Modul: {task.module} • Schwierigkeit: {task.diff}/3
+          </p>
+        </div>
+
+        {/* Lösungsschritte */}
+        <div className="bg-white p-5 rounded-xl border shadow-sm">
+          <button
+            onClick={() => setShowSolution(!showSolution)}
+            className="flex items-center justify-between w-full font-bold text-slate-700 hover:text-blue-600 mb-2"
+          >
+            Lösungsschritte
+            <ChevronDown
+              size={16}
+              className={`transition-transform ${showSolution ? "rotate-180" : ""}`}
+            />
+          </button>
+          {showSolution && (
+            <ul className="list-disc list-inside text-slate-600 space-y-1 pl-2">
+              {task.solution_steps.map((s, i) => (
+                <li key={i} className="font-mono text-sm">
+                  {s}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Trace Simulation */}
+        <div className="bg-slate-900 text-green-400 font-mono p-4 rounded-lg shadow-inner">
+          <div className="text-slate-400 text-xs mb-2 border-b border-slate-700 pb-1">
+            Simulation läuft...
+          </div>
+          {task.trace.slice(0, step).map((t, i) => (
+            <div key={i} className="transition-all">
+              &gt; Zeile {t.l}: {t.v}
+            </div>
+          ))}
+          {step < task.trace.length && <div className="animate-pulse">&gt; _</div>}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default TaskViewer;
+/* --- Block A5 --- */
+/* src/index.css */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --- Global Styles --- */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: #f8fafc;
+  color: #1e293b;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.6);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 116, 139, 0.8);
+}
+
+/* Prose (Markdown) Styling */
+.prose p {
+  margin: 0.5rem 0;
+}
+
+.prose code {
+  background-color: #e2e8f0;
+  color: #1e293b;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.prose pre {
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 1rem;
+  border-radius: 8px;
+  overflow-x: auto;
+}
